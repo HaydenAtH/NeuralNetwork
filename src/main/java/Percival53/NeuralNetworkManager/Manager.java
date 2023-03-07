@@ -6,6 +6,7 @@ public class Manager {
 
     int generationCount = 5;
 
+    int problemCount = 1;
 
     int counter;
 
@@ -23,25 +24,49 @@ public class Manager {
         System.out.print("Training Model");
         int z = 0;
 
-        net = new NeuralNetwork(set.getRandomInput().length, 30, 1, 30);
+        net = new NeuralNetwork(set.getRandomInput().length, 50, 1, 50);
         fitNet = net;
 
         populateNets();
         for (int i = 0; i < generationCount; i++) {
             counter++;
 
-            for (NeuralNetwork n : activeNets) {
-                float[] inputSet = set.getRandomInput();
+            float[] fitnessTracker = new float[problemCount];
 
-                float[] output = n.FeedInput(inputSet);
-                n.addFitness(1f - (Math.abs(set.getExpectedOutput(inputSet)[0] - fitNet.endpoint)));
+            float expectedOutput = -1;
+            for (NeuralNetwork n : activeNets) {
+                for (int p = 0; p < problemCount; p++){
+                    float[] inputSet = set.getRandomInput();
+
+                    float[] output = n.FeedInput(inputSet);
+                    fitnessTracker[p] = 1f - (Math.abs(set.getExpectedOutput(inputSet)[0] - output[0]));
+
+                }
+
+                if (problemCount > 1){
+                    float average = 0;
+                    for (float a : fitnessTracker){
+                        average += a;
+                    }
+
+                    average /= problemCount;
+
+                    n.setFitness(average);
+                }else{
+                    n.setFitness(fitnessTracker[0]);
+                }
+
+
+
             }
             fitNet = findMostFit(activeNets);
+
+            expectedOutput = set.getExpectedOutput(fitNet.inputs)[0];
 
             if (debug){
                 System.out.println("------------");
                 System.out.println("Generation: " + i + " | " + generationCount);
-                System.out.println("Output of most Fit Net: " + fitNet.outputs[0] + "\n Fitness: " + fitNet.fitness);
+                System.out.println("Output of most Fit Net: " + fitNet.outputs[0] + " | " + expectedOutput + "\nFitness: " + fitNet.fitness + " From: " + problemCount + " problems");
             }
             populateNets(fitNet);
 
@@ -60,11 +85,6 @@ public class Manager {
                 highestFitness = network.getFitness();
                 mostFitNet = network;
             }
-        }
-
-        if (mostFitNet == null){
-            System.out.println("Null FitNet");
-            mostFitNet = new NeuralNetwork(2,10, 1, 5);
         }
 
         return mostFitNet;

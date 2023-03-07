@@ -94,6 +94,7 @@ public class NeuralNetwork {
     }
 
     public float[] FeedInput(float[] inputs){
+        endpoint = 0;
         Neuron[] sentNeurons = new Neuron[layers[0].getNeurons().size()];
         Object[] neuronsF = layers[0].getNeurons().toArray();
         this.inputs = inputs;
@@ -131,9 +132,6 @@ public class NeuralNetwork {
 
                     layers[i].addNeuron(n);
                     neurons[i][z] = n;
-
-
-
             }
         }
     }
@@ -154,19 +152,6 @@ public class NeuralNetwork {
         endpoint += f;
         outputs[0] = f;
         outputIndex++;
-
-
-        if ((outputIndex + 1) >= outputs.length){
-
-            outputIndex = 0;
-        }
-    }
-
-    public void FeedNextLayer(){
-        Layer nextLayer = layers[activeLayer + 1];
-        Layer currentLayer = layers[activeLayer];
-
-
     }
 
     public void printNeurons(){

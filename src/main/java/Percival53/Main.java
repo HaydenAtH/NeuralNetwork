@@ -23,7 +23,7 @@ public class Main {
         }
 
         // Meant to simulate a simple addition problem
-        NeuralNetwork trainedModel = manager.simulate(trainingSet, 500, 500);
+        NeuralNetwork trainedModel = manager.simulate(trainingSet, 500, 50);
         trainedModel.printNeurons();
 
         while (true){
