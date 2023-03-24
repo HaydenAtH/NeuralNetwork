@@ -10,20 +10,25 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Manager manager = new Manager();
+        manager.testFunc();
+    }
+
+    public static void networkTrainer(){
+        Manager manager = new Manager();
         Dataset trainingSet = new Dataset();
 
 
         Random rndm = new Random();
 
         for (int i = 0; i < 500000; i++){
-            float n1 = rndm.nextFloat(40);
-            float n2 = rndm.nextFloat(40);
+            float n1 = (float) rndm.nextInt(40);
+            float n2 = (float) rndm.nextInt(40);
 
             trainingSet.addSet(new float[] {n1, n2}, new float[] {n1 + n2});
         }
 
         // Meant to simulate a simple addition problem
-        NeuralNetwork trainedModel = manager.simulate(trainingSet, 500, 50);
+        NeuralNetwork trainedModel = manager.simulate(trainingSet, 500, 50, 20);
         trainedModel.printNeurons();
 
         while (true){

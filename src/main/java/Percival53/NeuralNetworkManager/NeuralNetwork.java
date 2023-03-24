@@ -1,5 +1,6 @@
 package Percival53.NeuralNetworkManager;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 public class NeuralNetwork {
@@ -18,19 +19,31 @@ public class NeuralNetwork {
 
     int activeLayer;
 
-    float fitness;
+    float fitness; // Used for network culling
 
     float endpoint = 0;
 
+    int[] shape = {0, 2, 4, 2, 0}; // Proportion of network shape
+
+    /**
+     * Constructor for Neural Network
+     * @param inputAmounts How many inputs the network will be receiving
+     * @param layerAmount How many layers the neural network will have [replaced soon]
+     * @param outputAmount How many outputs the network will provide
+     * @param height How tall the network should be in terms of neurons
+     */
     public NeuralNetwork(int inputAmounts, int layerAmount, int outputAmount, int height){
+        shape[0] = inputAmounts;
+        shape[shape.length - 1] = outputAmount;
+
         inputs = new float[inputAmounts];
-        width = layerAmount;
+        width = shape.length;
         this.height = height;
-        layers = new Layer[layerAmount];
+        layers = new Layer[shape.length];
 
-        neurons = new Neuron[layerAmount][height];
+        neurons = new Neuron[shape.length][topHeight() * height];
 
-        InitLayers(layerAmount);
+        InitLayers(shape.length);
         outputs = new float[outputAmount + 1];
         activeLayer = 0;
         InitNeurons();
@@ -62,15 +75,20 @@ public class NeuralNetwork {
     }
 
     public void randomizeNeuronConnections(){
+
         for (int i = 0; i < width; i++){
-            for (int z = 0; z < height; z++){
-                layers[i].getNeurons().get(z).randomizeConnection();
+            if (i + 1 < width){
+                while (!checkForDisconnect(layers[i], layers[i + 1])) {
+                    for (int z = 0; z < shape[i] * height; z++) {
+                        layers[i].getNeurons().get(z).addRandomConnection();
+                    }
+                }
             }
         }
     }
 
     public void populateLayer(Layer l, int x){
-        for (int z = 0; z < height; z++){
+        for (int z = 0; z < shape[x] * height; z++){
             Neuron n = new Neuron(l, this);
 
             l.addNeuron(n);
@@ -109,7 +127,7 @@ public class NeuralNetwork {
 
     public void InitNeurons(){
         for (int i = 0; i < width; i++){
-            for (int z = 0; z < height; z++){
+            for (int z = 0; z < shape[i] * height; z++){
                 Neuron n = new Neuron(layers[i], this);
 
                 layers[i].addNeuron(n);
@@ -125,13 +143,13 @@ public class NeuralNetwork {
     }
 
     public void InitNeurons(NeuralNetwork neuralNetwork){
-        for (int i = 0; i < layers.length; i++){
-            for (int z = 0; z < height; z++){
-                    Random rndm = new Random();
-                    Neuron n = new Neuron(layers[i], this).copy(neuralNetwork.neurons[i][z]);
+        for (int i = 0; i < width; i++){
+            for (int z = 0; z < shape[i] * height; z++){
+                Random rndm = new Random();
+                Neuron n = new Neuron(layers[i], this).copy(neuralNetwork.neurons[i][z]);
 
-                    layers[i].addNeuron(n);
-                    neurons[i][z] = n;
+                layers[i].addNeuron(n);
+                neurons[i][z] = n;
             }
         }
     }
@@ -155,11 +173,46 @@ public class NeuralNetwork {
     }
 
     public void printNeurons(){
-        for (int i = 0; i < width; i++){
+        for (int i = 0; i < shape.length; i++){
             System.out.println(" ");
-            for(int z = 0; z < height; z++){
+            for(int z = 0; z < shape[i]; z++){
                 System.out.print(neurons[i][z].getWeight() + "  ");
             }
         }
+    }
+
+    public int topHeight(){
+        int x = 0;
+
+        for (int f : shape){
+            if (f > x){
+                x = f;
+            }
+        }
+
+        return x;
+    }
+
+    public boolean checkForDisconnect(Layer l1, Layer l2){
+        ArrayList<Neuron> nArr = new ArrayList<Neuron>();
+
+        int x = 0;
+        for (Neuron n : l1.getNeurons()){
+            for (Connection c : n.getConnections()){
+                if (!nArr.contains(c.endpoint)){
+                    nArr.add(c.endpoint);
+                    x++;
+                }
+            }
+        }
+
+        int y = 0;
+        for (Neuron n : l2.getNeurons()){
+            if (n != null){
+                y++;
+            }
+        }
+
+        return (y == x);
     }
 }

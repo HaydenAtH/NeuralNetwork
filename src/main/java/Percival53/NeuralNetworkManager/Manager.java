@@ -14,31 +14,44 @@ public class Manager {
     NeuralNetwork[] activeNets;
     NeuralNetwork fitNet;
 
-    public NeuralNetwork simulate(Dataset set, int population, int generations){
+    private float[] fitnessTracker;
+
+    private float expectedOutput;
+
+    private float[] inputSet;
+
+    private float[] output;
+
+    private double percentComplete;
+
+    public NeuralNetwork simulate(Dataset set, int population, int generations, int problemCount){
         counter = 0;
         boolean debug = true;
         this.population = population;
         this.generationCount = generations;
         this.activeNets = new NeuralNetwork[population + 1];
+        this.problemCount = problemCount;
 
         System.out.print("Training Model");
         int z = 0;
 
-        net = new NeuralNetwork(set.getRandomInput().length, 50, 1, 50);
+        net = new NeuralNetwork(set.getRandomInput().length, 5, 1, 5);
         fitNet = net;
 
         populateNets();
         for (int i = 0; i < generationCount; i++) {
             counter++;
 
-            float[] fitnessTracker = new float[problemCount];
+            fitnessTracker = new float[problemCount];
 
-            float expectedOutput = -1;
+            expectedOutput = -1;
+            int b = 0;
             for (NeuralNetwork n : activeNets) {
+                b++;
                 for (int p = 0; p < problemCount; p++){
-                    float[] inputSet = set.getRandomInput();
+                    inputSet = set.getRandomInput();
 
-                    float[] output = n.FeedInput(inputSet);
+                    output = n.FeedInput(inputSet);
                     fitnessTracker[p] = 1f - (Math.abs(set.getExpectedOutput(inputSet)[0] - output[0]));
 
                 }
@@ -100,4 +113,10 @@ public class Manager {
             activeNets[i] = new NeuralNetwork(modelNetwork);
         }
     }
+
+    public void testFunc(){
+        NeuralNetwork net = new NeuralNetwork(1, 3, 1, 1);
+        net.printNeurons();
+    }
+
 }
