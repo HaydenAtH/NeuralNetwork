@@ -22,6 +22,10 @@ public class Manager {
 
     private float[] output;
 
+    NeuralNetwork mostFitNet;
+
+    boolean revertRegression = true;
+
     private double percentComplete;
 
     public NeuralNetwork simulate(Dataset set, int population, int generations, int problemCount){
@@ -35,8 +39,9 @@ public class Manager {
         System.out.print("Training Model");
         int z = 0;
 
-        net = new NeuralNetwork(set.getRandomInput().length, 5, 1, 5);
+        net = new NeuralNetwork(set.getRandomInput().length, 5, 1, 10);
         fitNet = net;
+        mostFitNet = fitNet;
 
         populateNets();
         for (int i = 0; i < generationCount; i++) {
@@ -115,7 +120,8 @@ public class Manager {
     }
 
     public void testFunc(){
-        NeuralNetwork net = new NeuralNetwork(1, 3, 1, 1);
+        NeuralNetwork net = new NeuralNetwork(1, 3, 1, 10);
+        net.FeedInput(new float[] {1, 2});
         net.printNeurons();
     }
 

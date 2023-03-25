@@ -14,7 +14,7 @@ public class Neuron {
 
     int[][] connectionsCoords;
 
-    public float input;
+    public ArrayList<Float> input;
     private float output;
 
     public boolean connected = false;
@@ -26,6 +26,7 @@ public class Neuron {
 
         this.layer = layer;
         this.net = newNet;
+        this.input = new ArrayList<Float>();
     }
 
     public void mutate(float min, float max){
@@ -53,6 +54,8 @@ public class Neuron {
     public Neuron copy(Neuron nOther){
         this.weight = nOther.getWeight();
         this.connectionsCoords = nOther.connectionsCoords;
+        this.input = new ArrayList<Float>();
+
         return this;
     }
 
@@ -64,13 +67,20 @@ public class Neuron {
         this.weight = weight;
     }
 
-    public void setInput(float input){
-        this.input = input;
-        this.output = input * weight;
+    public void addInput(float f){
+        this.input.add(f);
+
+        float d = 0;
+
+        for (int i = 0; i < input.size(); i++){
+            d += (input.get(i) * this.weight);
+        }
+
+        this.output = d;
 
         if (this.connections.size() != 0){
             for (Connection c : connections){
-                c.endpoint.setInput(output);
+                c.endpoint.addInput(output);
             }
         }else{
             net.addOutput(this.output);
@@ -116,7 +126,7 @@ public class Neuron {
                                 b = true;
                             }
                         }else{
-                            if (c.endpoint == (Neuron) nextLayer.getNeurons().get(r) || ((Neuron) nextLayer.getNeurons().get(r)).connected == true){
+                            if (c.endpoint == (Neuron) nextLayer.getNeurons().get(r)){
                                 b = true;
                             }
                         }
@@ -151,7 +161,7 @@ public class Neuron {
         int i = 0;
         for (Layer l : net.layers){
             if (l == layer){
-                return net.layers[i];
+                return net.layers[i + 1];
             }
 
             i++;
@@ -168,5 +178,17 @@ public class Neuron {
 
         oC.endpoint = tC.endpoint;
         tC.endpoint = oC.endpoint;
+    }
+
+    public boolean doesNeuronLayerConnectTo(Neuron nT){
+        for (Neuron n : layer.getNeurons()){
+            for (Connection c : n.connections){
+                if (c.endpoint == nT){
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

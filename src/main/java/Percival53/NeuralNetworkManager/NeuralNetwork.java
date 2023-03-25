@@ -6,7 +6,6 @@ import java.util.Random;
 public class NeuralNetwork {
     float[] inputs;
     Layer[] layers;
-    Neuron[][] neurons;
 
     Layer mainLayer = new Layer();
 
@@ -41,13 +40,10 @@ public class NeuralNetwork {
         this.height = height;
         layers = new Layer[shape.length];
 
-        neurons = new Neuron[shape.length][topHeight() * height];
-
         InitLayers(shape.length);
         outputs = new float[outputAmount + 1];
         activeLayer = 0;
         InitNeurons();
-        verifyLayers();
         randomizeNeuronConnections();
 
     }
@@ -58,20 +54,12 @@ public class NeuralNetwork {
         this.width = nNetwork.width;
         this.height = nNetwork.height;
         layers = new Layer[nNetwork.layers.length];
-        neurons = new Neuron[nNetwork.layers.length][nNetwork.height];
 
         this.outputs = new float[nNetwork.outputs.length];
         activeLayer = 0;
         InitLayers(nNetwork.layers.length);
         InitNeurons(nNetwork);
         rollMutate();
-    }
-    public void verifyLayers(){
-        for (int i = 0; i < layers.length; i++){
-            if (layers[i].getNeurons().size() != height){
-                populateLayer(layers[i], i);
-            }
-        }
     }
 
     public void randomizeNeuronConnections(){
@@ -92,14 +80,13 @@ public class NeuralNetwork {
             Neuron n = new Neuron(l, this);
 
             l.addNeuron(n);
-            neurons[x][z] = n;
         }
     }
 
     public void rollMutate(){
         Random rndm = new Random();
-        for (Neuron[] nArr : neurons){
-            for (Neuron n : nArr){
+        for (Layer lf : layers){
+            for (Neuron n : lf.getNeurons()){
                 float f = rndm.nextFloat(10);
 
                 if (f == 1){
@@ -114,12 +101,18 @@ public class NeuralNetwork {
     public float[] FeedInput(float[] inputs){
         endpoint = 0;
         Neuron[] sentNeurons = new Neuron[layers[0].getNeurons().size()];
+
+        while (inputs.length > layers[0].getNeurons().size()){
+            Neuron newN = new Neuron(layers[0], this);
+            layers[0].addNeuron(newN);
+        }
+
         Object[] neuronsF = layers[0].getNeurons().toArray();
         this.inputs = inputs;
 
         for (int i = 0; i < inputs.length; i++){
-            Neuron n = (Neuron) neuronsF[0];
-            n.setInput(inputs[i]);
+            Neuron n = (Neuron) neuronsF[i];
+            n.addInput(inputs[i]);
         }
 
         return this.outputs;
@@ -131,7 +124,6 @@ public class NeuralNetwork {
                 Neuron n = new Neuron(layers[i], this);
 
                 layers[i].addNeuron(n);
-                neurons[i][z] = n;
             }
         }
     }
@@ -143,13 +135,15 @@ public class NeuralNetwork {
     }
 
     public void InitNeurons(NeuralNetwork neuralNetwork){
-        for (int i = 0; i < width; i++){
+        shape[0] = neuralNetwork.shape[0];
+        shape[shape.length - 1] = neuralNetwork.shape[neuralNetwork.shape.length - 1];
+
+        for (int i = 0; i < shape.length; i++){
             for (int z = 0; z < shape[i] * height; z++){
                 Random rndm = new Random();
-                Neuron n = new Neuron(layers[i], this).copy(neuralNetwork.neurons[i][z]);
+                Neuron n = new Neuron(layers[i], this).copy(neuralNetwork.layers[i].getNeurons().get(z));
 
                 layers[i].addNeuron(n);
-                neurons[i][z] = n;
             }
         }
     }
@@ -175,8 +169,8 @@ public class NeuralNetwork {
     public void printNeurons(){
         for (int i = 0; i < shape.length; i++){
             System.out.println(" ");
-            for(int z = 0; z < shape[i]; z++){
-                System.out.print(neurons[i][z].getWeight() + "  ");
+            for(int z = 0; z < shape[i] * height; z++){
+                System.out.print(layers[i].getNeurons().get(z).getWeight() + "  ");
             }
         }
     }
